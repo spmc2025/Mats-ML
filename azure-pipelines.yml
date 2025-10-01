@@ -6,16 +6,21 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
+# Use Python 3.10
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.10'
     addToPath: true
 
+# Install Python dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install --prefer-binary -r requirements.txt
   displayName: 'Install Python dependencies'
 
+# Run your Python script
 - script: |
+    # Ensure output folder exists
+    mkdir -p output
     python src/Breast_Cancer_Prediction.py
   displayName: 'Run ML script'
