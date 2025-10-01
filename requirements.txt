@@ -1,21 +1,13 @@
-# Core libraries for data handling
-numpy==1.26.0        # Numerical operations
-pandas==2.1.1        # Data manipulation
+# Core libraries
+numpy==1.26.0
+pandas==2.1.1
 
 # Scikit-learn for ML preprocessing, metrics, train-test split
 scikit-learn==1.3.0
 
-# XGBoost for gradient boosting
-xgboost==1.8.6
+# XGBoost (last version with stable Python 3.10 + Linux support)
+xgboost==1.7.6
 
 # Visualization libraries
 matplotlib==3.8.1
 seaborn==0.12.3
-
-# Optional / future ML/AI enhancements (commented placeholders)
-# lightgbm==4.4.0     # Alternative boosting algorithm
-# catboost==1.1.3     # Another boosting algorithm
-# tensorflow==2.15.0  # Deep learning
-# torch==2.1.0        # PyTorch
-# mlflow==2.7.0       # Experiment tracking and model logging
-# joblib==1.3.2       # Model saving/loading if needed
