@@ -1,26 +1,32 @@
 # azure-pipelines.yml
 trigger:
-- main   # Run when pushing to main branch
+  - main  # Automatically run on push to main branch
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-# Use Python 3.10
+# 1️⃣ Use Python 3.10
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '3.10'
     addToPath: true
+  displayName: 'Use Python 3.10'
 
-# Install Python dependencies
+# 2️⃣ Upgrade pip and install dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install --prefer-binary -r requirements.txt
   displayName: 'Install Python dependencies'
 
-# Run your Python script
+# 3️⃣ Run ML script
 - script: |
-    # Ensure output folder exists
-    mkdir -p output
-    python src/Breast_Cancer_Prediction.py
-  displayName: 'Run ML script'
+    python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py
+  displayName: 'Run Breast Cancer Prediction Script'
+
+# Optional: publish outputs (if you want artifacts to download from pipeline)
+# - task: PublishPipelineArtifact@1
+#   inputs:
+#     targetPath: 'src/output'   # Replace with your actual output folder
+#     artifact: 'MLOutputs'
+#     publishLocation: 'pipeline'
