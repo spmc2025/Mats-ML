@@ -27,23 +27,29 @@ steps:
   workingDirectory: $(WORKSPACE)
   displayName: 'Install Python dependencies'
 
-# 3️⃣ Run the ML script
+# 3️⃣ Ensure output directories exist
 - script: |
-    python src/Breast_Cancer_Prediction.py
+    mkdir -p $(WORKSPACE)/Output/Patient_Predictions
+    mkdir -p $(WORKSPACE)/Output/Plots
+  displayName: 'Create output folders'
+
+# 4️⃣ Run the ML script
+- script: |
+    python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py
   workingDirectory: $(WORKSPACE)
   displayName: 'Run Breast Cancer Prediction Script'
 
-# 4️⃣ Publish output CSVs and plots as pipeline artifacts
+# 5️⃣ Publish output CSVs and plots as pipeline artifacts
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: 'E:\AI_Training\CPT_Data\Outbound_Data'
+    targetPath: '$(WORKSPACE)/Output/Patient_Predictions'
     artifact: 'Patient_Predictions'
     publishLocation: 'pipeline'
   displayName: 'Publish prediction CSVs'
 
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: 'E:\AI_Training\CPT_Data\Plots'
+    targetPath: '$(WORKSPACE)/Output/Plots'
     artifact: 'Plots'
     publishLocation: 'pipeline'
   displayName: 'Publish Plots'
