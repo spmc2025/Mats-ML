@@ -1,4 +1,3 @@
-# Azure Pipelines YAML
 trigger:
 - main
 
@@ -9,28 +8,23 @@ variables:
   pythonVersion: '3.10'
 
 steps:
-# Checkout repo
 - task: Checkout@1
   displayName: 'Checkout Repository'
 
-# Setup Python
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(pythonVersion)'
     addToPath: true
 
-# Install dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
   displayName: 'Install Python packages'
 
-# Run ML script
 - script: |
     python src/breast_cancer_ml.py
   displayName: 'Run Breast Cancer ML Script'
 
-# Publish outputs
 - task: PublishPipelineArtifact@1
   inputs:
     targetPath: 'E:/AI_Training/CPT_AZURE/ML/out_files'
