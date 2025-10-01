@@ -1,59 +1,77 @@
 # azure-pipelines.yml
-# Pipeline for Breast Cancer Prediction ML script
-
 trigger:
-- main  # Run automatically on push to main branch
+  branches:
+    include:
+      - main
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
-  PYTHON_VERSION: '3.10'
-  WORKSPACE: '$(Build.SourcesDirectory)'
-  OUTPUT_DIR: '$(WORKSPACE)/outputs'
+  # Workspace folders
+  inbound_data: '$(Pipeline.Workspace)/Inbound_Data'
+  outbound_data: '$(Pipeline.Workspace)/Outbound_Data'
+  plots_data: '$(Pipeline.Workspace)/Plots'
+  models_data: '$(Pipeline.Workspace)/Models_Created'
 
-steps:
+stages:
+- stage: BuildAndPredict
+  displayName: 'Build and Run Prediction'
+  jobs:
+  - job: RunMLJob
+    displayName: 'Run ML Pipeline'
+    steps:
+    # Checkout repo
+    - task: Checkout@1
 
-# 1️⃣ Use the specified Python version
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(PYTHON_VERSION)'
-    addToPath: true
-  displayName: 'Use Python $(PYTHON_VERSION)'
+    # Setup Python
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '3.10'
+        addToPath: true
 
-# 2️⃣ Install Python dependencies
-- script: |
-    python -m pip install --upgrade pip
-    pip install --prefer-binary -r requirements.txt
-  workingDirectory: $(WORKSPACE)
-  displayName: 'Install Python dependencies'
+    # Install dependencies
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: 'Install Python dependencies'
 
-# 3️⃣ Create output directories
-- script: |
-    mkdir -p $(OUTPUT_DIR)/Patient_Predictions
-    mkdir -p $(OUTPUT_DIR)/Plots
-  displayName: 'Create output directories'
+    # Ensure workspace folders exist
+    - script: |
+        mkdir -p $(inbound_data) $(outbound_data) $(plots_data) $(models_data)
+      displayName: 'Create workspace folders'
 
-# 4️⃣ Run the ML script
-- script: |
-    python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py \
-      --output-csv $(OUTPUT_DIR)/Patient_Predictions \
-      --output-plots $(OUTPUT_DIR)/Plots
-  workingDirectory: $(WORKSPACE)
-  displayName: 'Run Breast Cancer Prediction Script'
+    # Copy input CSV from repo to workspace (if you commit the CSV)
+    - script: |
+        cp src/Breast_Cancer_Prediction_Data.csv $(inbound_data)/
+      displayName: 'Copy Input CSV to workspace'
 
-# 5️⃣ Publish CSV predictions
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '$(OUTPUT_DIR)/Patient_Predictions'
-    artifact: 'Patient_Predictions'
-    publishLocation: 'pipeline'
-  displayName: 'Publish Patient Predictions'
+    # Run Python script
+    - script: |
+        python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py \
+            --input-csv $(inbound_data)/Breast_Cancer_Prediction_Data.csv \
+            --output-csv $(outbound_data) \
+            --output-plots $(plots_data) \
+            --output-model $(models_data)
+      displayName: 'Run ML prediction script'
 
-# 6️⃣ Publish plots
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '$(OUTPUT_DIR)/Plots'
-    artifact: 'Plots'
-    publishLocation: 'pipeline'
-  displayName: 'Publish Plots'
+    # Publish CSVs
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(outbound_data)'
+        artifact: 'Patient_Predictions'
+      displayName: 'Publish Prediction CSVs'
+
+    # Publish Plots
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(plots_data)'
+        artifact: 'Plots'
+      displayName: 'Publish Plots'
+
+    # Publish Model
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(models_data)'
+        artifact: 'Model'
+      displayName: 'Publish Trained Model'
