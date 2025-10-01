@@ -1,77 +1,66 @@
-# azure-pipelines.yml
 trigger:
-  branches:
-    include:
-      - main
+- main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 variables:
-  # Workspace folders
-  inbound_data: '$(Pipeline.Workspace)/Inbound_Data'
-  outbound_data: '$(Pipeline.Workspace)/Outbound_Data'
-  plots_data: '$(Pipeline.Workspace)/Plots'
-  models_data: '$(Pipeline.Workspace)/Models_Created'
+  # Define workspace folders
+  inbound_data: '$(Pipeline.Workspace)\Inbound_Data'
+  outbound_data: '$(Pipeline.Workspace)\Outbound_Data'
+  plots_data: '$(Pipeline.Workspace)\Plots'
+  models_data: '$(Pipeline.Workspace)\Models_Created'
 
 stages:
-- stage: BuildAndPredict
-  displayName: 'Build and Run Prediction'
+- stage: Build
+  displayName: 'Build and Run ML Pipeline'
   jobs:
-  - job: RunMLJob
-    displayName: 'Run ML Pipeline'
+  - job: MLJob
+    displayName: 'Run ML Model & Generate Outputs'
     steps:
-    # Checkout repo
-    - task: Checkout@1
 
-    # Setup Python
+    # Checkout repo
+    - checkout: self
+
+    # Install dependencies
     - task: UsePythonVersion@0
       inputs:
         versionSpec: '3.10'
         addToPath: true
 
-    # Install dependencies
     - script: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-      displayName: 'Install Python dependencies'
+      displayName: 'Install Python Dependencies'
 
-    # Ensure workspace folders exist
+    # Ensure folders exist
     - script: |
-        mkdir -p $(inbound_data) $(outbound_data) $(plots_data) $(models_data)
-      displayName: 'Create workspace folders'
-
-    # Copy input CSV from repo to workspace (if you commit the CSV)
-    - script: |
-        cp src/Breast_Cancer_Prediction_Data.csv $(inbound_data)/
-      displayName: 'Copy Input CSV to workspace'
+        mkdir "$(inbound_data)" || echo "Folder exists"
+        mkdir "$(outbound_data)" || echo "Folder exists"
+        mkdir "$(plots_data)" || echo "Folder exists"
+        mkdir "$(models_data)" || echo "Folder exists"
+      displayName: 'Create Workspace Folders'
 
     # Run Python script
     - script: |
-        python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py \
-            --input-csv $(inbound_data)/Breast_Cancer_Prediction_Data.csv \
-            --output-csv $(outbound_data) \
-            --output-plots $(plots_data) \
-            --output-model $(models_data)
-      displayName: 'Run ML prediction script'
+        python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py
+      displayName: 'Run Breast Cancer ML Script'
 
-    # Publish CSVs
+    # Publish pipeline artifacts
     - task: PublishPipelineArtifact@1
       inputs:
         targetPath: '$(outbound_data)'
         artifact: 'Patient_Predictions'
-      displayName: 'Publish Prediction CSVs'
+      displayName: 'Publish Patient Predictions'
 
-    # Publish Plots
     - task: PublishPipelineArtifact@1
       inputs:
         targetPath: '$(plots_data)'
         artifact: 'Plots'
       displayName: 'Publish Plots'
 
-    # Publish Model
     - task: PublishPipelineArtifact@1
       inputs:
         targetPath: '$(models_data)'
-        artifact: 'Model'
-      displayName: 'Publish Trained Model'
+        artifact: 'Trained_Model'
+      displayName: 'Publish ML Model'
