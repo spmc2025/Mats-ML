@@ -1,5 +1,6 @@
+# azure-pipelines.yml
 trigger:
-- main
+- main   # Run when pushing to main branch
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -7,14 +8,14 @@ pool:
 steps:
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '3.x'
+    versionSpec: '3.10'
     addToPath: true
 
 - script: |
     python -m pip install --upgrade pip
-    pip install -r requirements.txt
+    pip install --prefer-binary -r requirements.txt
   displayName: 'Install Python dependencies'
 
 - script: |
-    python SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py
-  displayName: 'Run Breast Cancer Prediction Script'
+    python src/Breast_Cancer_Prediction.py
+  displayName: 'Run ML script'
