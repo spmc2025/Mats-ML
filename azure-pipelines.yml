@@ -1,13 +1,43 @@
-import os
+# azure-pipelines.yml
+# Pipeline for Breast Cancer Prediction ML script
 
-# Create relative outputs folder
-output_dir = os.path.join(os.getcwd(), "outputs")
-os.makedirs(output_dir, exist_ok=True)
+trigger:
+- main  # Run automatically on push to main branch
 
-# Example saving predictions
-pred_file = os.path.join(output_dir, "Patient_Predictions.csv")
-df.to_csv(pred_file, index=False)
+pool:
+  vmImage: 'ubuntu-latest'
 
-# Example saving plots
-plot_file = os.path.join(output_dir, "prediction_plot.png")
-plt.savefig(plot_file)
+variables:
+  PYTHON_VERSION: '3.10'
+  WORKSPACE: '$(Build.SourcesDirectory)'
+
+steps:
+
+# 1️⃣ Use the specified Python version
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(PYTHON_VERSION)'
+    addToPath: true
+  displayName: 'Use Python $(PYTHON_VERSION)'
+
+# 2️⃣ Install Python dependencies
+- script: |
+    python -m pip install --upgrade pip
+    pip install --prefer-binary -r requirements.txt
+  workingDirectory: $(WORKSPACE)
+  displayName: 'Install Python dependencies'
+
+# 3️⃣ Run the ML script (ensure it writes outputs to ./outputs/)
+- script: |
+    mkdir -p outputs
+    python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py
+  workingDirectory: $(WORKSPACE)
+  displayName: 'Run Breast Cancer Prediction Script'
+
+# 4️⃣ Publish output CSVs and plots as pipeline artifacts
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/outputs'
+    artifact: 'Model_Outputs'
+    publishLocation: 'pipeline'
+  displayName: 'Publish Outputs'
