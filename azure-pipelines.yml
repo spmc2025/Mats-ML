@@ -1,5 +1,4 @@
-# File: azure-pipelines.yml
-
+# Azure Pipelines YAML
 trigger:
 - main
 
@@ -11,7 +10,7 @@ variables:
 
 steps:
 # Checkout repo
-- task: Checkout@2
+- checkout: self   # Fixed checkout syntax
 
 # Setup Python
 - task: UsePythonVersion@0
@@ -33,7 +32,7 @@ steps:
 # Publish outputs
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: '$(Build.SourcesDirectory)/out_files'
+    targetPath: 'out_files'
     artifact: 'BreastCancerML_Outputs'
     publishLocation: 'pipeline'
   displayName: 'Publish ML Outputs'
