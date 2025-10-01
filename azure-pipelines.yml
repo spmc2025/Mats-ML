@@ -1,33 +1,36 @@
+# File: azure-pipelines.yml
 trigger:
 - main
 
+# Use the latest Windows VM
 pool:
   vmImage: 'windows-latest'
 
-variables:
-  pythonVersion: '3.10'
-
 steps:
-- task: Checkout@1
-  displayName: 'Checkout Repository'
+# Step 1: Checkout the repo (safe version)
+- checkout: self
 
+# Step 2: Setup Python
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '$(pythonVersion)'
+    versionSpec: '3.10'
     addToPath: true
 
+# Step 3: Install dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
   displayName: 'Install Python packages'
 
+# Step 4: Run your Python script
 - script: |
     python src/breast_cancer_ml.py
   displayName: 'Run Breast Cancer ML Script'
 
+# Step 5: Publish artifacts
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: 'E:/AI_Training/CPT_AZURE/ML/out_files'
+    targetPath: 'out_files'
     artifact: 'BreastCancerML_Outputs'
     publishLocation: 'pipeline'
   displayName: 'Publish ML Outputs'
