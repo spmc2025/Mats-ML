@@ -11,7 +11,7 @@ import os
 os.makedirs("output", exist_ok=True)
 
 # Load dataset from repo (relative path)
-df = pd.read_csv("src/Breast_Cancer_Prediction_Data.csv")
+df = pd.read_csv("data/Breast_Cancer_Prediction_Data.csv")
 
 # Prepare features and target
 X = df.drop(['target', 'Patient_ID', 'Patient_Name'], axis=1)
