@@ -2,7 +2,7 @@
 # Pipeline for Breast Cancer Prediction ML script
 
 trigger:
-- main   # Run automatically on push to main branch
+- main  # Run automatically on push to main branch
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -10,6 +10,7 @@ pool:
 variables:
   PYTHON_VERSION: '3.10'
   WORKSPACE: '$(Build.SourcesDirectory)'
+  OUTPUT_DIR: '$(WORKSPACE)/outputs'
 
 steps:
 
@@ -27,32 +28,32 @@ steps:
   workingDirectory: $(WORKSPACE)
   displayName: 'Install Python dependencies'
 
-# 3️⃣ Create output directories inside workspace
+# 3️⃣ Create output directories
 - script: |
-    mkdir -p $(WORKSPACE)/Output/Patient_Predictions
-    mkdir -p $(WORKSPACE)/Output/Plots
+    mkdir -p $(OUTPUT_DIR)/Patient_Predictions
+    mkdir -p $(OUTPUT_DIR)/Plots
   displayName: 'Create output directories'
 
 # 4️⃣ Run the ML script
 - script: |
     python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py \
-        --output_csv $(WORKSPACE)/Output/Patient_Predictions \
-        --output_plots $(WORKSPACE)/Output/Plots
+      --output-csv $(OUTPUT_DIR)/Patient_Predictions \
+      --output-plots $(OUTPUT_DIR)/Plots
   workingDirectory: $(WORKSPACE)
   displayName: 'Run Breast Cancer Prediction Script'
 
-# 5️⃣ Publish CSVs as pipeline artifact
+# 5️⃣ Publish CSV predictions
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: '$(WORKSPACE)/Output/Patient_Predictions'
+    targetPath: '$(OUTPUT_DIR)/Patient_Predictions'
     artifact: 'Patient_Predictions'
     publishLocation: 'pipeline'
-  displayName: 'Publish prediction CSVs'
+  displayName: 'Publish Patient Predictions'
 
-# 6️⃣ Publish Plots as pipeline artifact
+# 6️⃣ Publish plots
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: '$(WORKSPACE)/Output/Plots'
+    targetPath: '$(OUTPUT_DIR)/Plots'
     artifact: 'Plots'
     publishLocation: 'pipeline'
   displayName: 'Publish Plots'
