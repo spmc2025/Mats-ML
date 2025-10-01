@@ -149,11 +149,11 @@ cols = ['Patient_ID', 'Patient_Name'] + [col for col in df.columns if col not in
 df = df[cols]
 
 # Save full dataset to CSV
-df.to_csv("E:\\AI_Training\\CPT_Data\\Inbound_Data\\Breast_Cancer_Prediction_Data.csv", index=False)
+df.to_csv("data/Breast_Cancer_Prediction_Data.csv", index=False)
 """
 
 # Load data from CSV
-df = pd.read_csv("E:\\AI_Training\\CPT_Data\\Inbound_Data\\Breast_Cancer_Prediction_Data.csv")
+df = pd.read_csv("data/Breast_Cancer_Prediction_Data.csv")
 # print("ORIGINAL DF:\n", df)
 # Prepare features(X) and numeric target(y) for training
     # dropping columns not included for training
