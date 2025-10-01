@@ -5,62 +5,45 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  # Define workspace folders
-  inbound_data: '$(Pipeline.Workspace)\Inbound_Data'
-  outbound_data: '$(Pipeline.Workspace)\Outbound_Data'
-  plots_data: '$(Pipeline.Workspace)\Plots'
-  models_data: '$(Pipeline.Workspace)\Models_Created'
+  inbound_data: 'E:\AI_Training\CPT_Data\Inbound_Data'
+  outbound_data: 'E:\AI_Training\CPT_Data\Outbound_Data'
+  plots_data: 'E:\AI_Training\CPT_Data\Plots'
+  models_data: 'E:\AI_Training\CPT_Data\Models_Created'
 
-stages:
-- stage: Build
-  displayName: 'Build and Run ML Pipeline'
-  jobs:
-  - job: MLJob
-    displayName: 'Run ML Model & Generate Outputs'
-    steps:
+jobs:
+- job: ML_Prediction
+  displayName: 'Run Breast Cancer Prediction ML Job'
+  steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.10'
+      addToPath: true
 
-    # Checkout repo
-    - checkout: self
+  - script: pip install -r requirements.txt
+    displayName: 'Install Python Dependencies'
 
-    # Install dependencies
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '3.10'
-        addToPath: true
+  - script: |
+      python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py ^
+        --input-csv "$(inbound_data)\Breast_Cancer_Prediction_Data.csv" ^
+        --output-csv "$(outbound_data)\All_Patient_Predictions_OUT.csv" ^
+        --output-plots "$(plots_data)" ^
+        --output-model "$(models_data)\Breast_Cancer_Prediction_Model.json"
+    displayName: 'Run Breast Cancer ML Script with Arguments'
 
-    - script: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-      displayName: 'Install Python Dependencies'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(outbound_data)'
+      artifact: 'Patient_Predictions'
+      publishLocation: 'pipeline'
 
-    # Ensure folders exist
-    - script: |
-        mkdir "$(inbound_data)" || echo "Folder exists"
-        mkdir "$(outbound_data)" || echo "Folder exists"
-        mkdir "$(plots_data)" || echo "Folder exists"
-        mkdir "$(models_data)" || echo "Folder exists"
-      displayName: 'Create Workspace Folders'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(plots_data)'
+      artifact: 'Prediction_Plots'
+      publishLocation: 'pipeline'
 
-    # Run Python script
-    - script: |
-        python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py
-      displayName: 'Run Breast Cancer ML Script'
-
-    # Publish pipeline artifacts
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: '$(outbound_data)'
-        artifact: 'Patient_Predictions'
-      displayName: 'Publish Patient Predictions'
-
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: '$(plots_data)'
-        artifact: 'Plots'
-      displayName: 'Publish Plots'
-
-    - task: PublishPipelineArtifact@1
-      inputs:
-        targetPath: '$(models_data)'
-        artifact: 'Trained_Model'
-      displayName: 'Publish ML Model'
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(models_data)'
+      artifact: 'ML_Models'
+      publishLocation: 'pipeline'
