@@ -1,0 +1,39 @@
+# File: azure-pipelines.yml
+
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  pythonVersion: '3.10'
+
+steps:
+# Checkout repo
+- task: Checkout@2
+
+# Setup Python
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(pythonVersion)'
+    addToPath: true
+
+# Install dependencies
+- script: |
+    python -m pip install --upgrade pip
+    pip install pandas matplotlib seaborn scikit-learn xgboost
+  displayName: 'Install Python packages'
+
+# Run ML script
+- script: |
+    python src/breast_cancer_ml.py
+  displayName: 'Run Breast Cancer ML Script'
+
+# Publish outputs
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.SourcesDirectory)/out_files'
+    artifact: 'BreastCancerML_Outputs'
+    publishLocation: 'pipeline'
+  displayName: 'Publish ML Outputs'
