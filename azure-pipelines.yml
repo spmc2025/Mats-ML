@@ -9,49 +9,31 @@ variables:
   pythonVersion: '3.10'
 
 steps:
-# =========================
-# Clean workspace
-# =========================
-- script: |
-    echo "Cleaning workspace..."
-    rd /s /q "$(Build.SourcesDirectory)" || echo "Nothing to clean"
-  displayName: 'Clean Workspace'
-
-# =========================
 # Checkout repo
-# =========================
-- task: Checkout@2
+- task: Checkout@1
   displayName: 'Checkout Repository'
 
-# =========================
 # Setup Python
-# =========================
 - task: UsePythonVersion@0
   inputs:
     versionSpec: '$(pythonVersion)'
     addToPath: true
 
-# =========================
-# Install dependencies from requirements.txt
-# =========================
+# Install dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install -r requirements.txt
-  displayName: 'Install Python dependencies'
+  displayName: 'Install Python packages'
 
-# =========================
 # Run ML script
-# =========================
 - script: |
     python src/breast_cancer_ml.py
   displayName: 'Run Breast Cancer ML Script'
 
-# =========================
 # Publish outputs
-# =========================
 - task: PublishPipelineArtifact@1
   inputs:
-    targetPath: 'out_files'
+    targetPath: 'E:/AI_Training/CPT_AZURE/ML/out_files'
     artifact: 'BreastCancerML_Outputs'
     publishLocation: 'pipeline'
   displayName: 'Publish ML Outputs'
