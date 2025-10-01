@@ -1,32 +1,49 @@
 # azure-pipelines.yml
+# Pipeline for Breast Cancer Prediction ML script
+
 trigger:
-  - main  # Automatically run on push to main branch
+- main  # Run automatically on push to main branch
 
 pool:
   vmImage: 'ubuntu-latest'
 
+variables:
+  PYTHON_VERSION: '3.10'
+  WORKSPACE: '$(Build.SourcesDirectory)'
+
 steps:
-# 1️⃣ Use Python 3.10
+
+# 1️⃣ Use the specified Python version
 - task: UsePythonVersion@0
   inputs:
-    versionSpec: '3.10'
+    versionSpec: '$(PYTHON_VERSION)'
     addToPath: true
-  displayName: 'Use Python 3.10'
+  displayName: 'Use Python $(PYTHON_VERSION)'
 
-# 2️⃣ Upgrade pip and install dependencies
+# 2️⃣ Install Python dependencies
 - script: |
     python -m pip install --upgrade pip
     pip install --prefer-binary -r requirements.txt
+  workingDirectory: $(WORKSPACE)
   displayName: 'Install Python dependencies'
 
-# 3️⃣ Run ML script
+# 3️⃣ Run the ML script
 - script: |
-    python src/SOK_XGBoost_Gradnt_Boost_Breast_Cancer.py
+    python src/Breast_Cancer_Prediction.py
+  workingDirectory: $(WORKSPACE)
   displayName: 'Run Breast Cancer Prediction Script'
 
-# Optional: publish outputs (if you want artifacts to download from pipeline)
-# - task: PublishPipelineArtifact@1
-#   inputs:
-#     targetPath: 'src/output'   # Replace with your actual output folder
-#     artifact: 'MLOutputs'
-#     publishLocation: 'pipeline'
+# 4️⃣ Publish output CSVs and plots as pipeline artifacts
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: 'E:\AI_Training\CPT_Data\Outbound_Data'
+    artifact: 'Patient_Predictions'
+    publishLocation: 'pipeline'
+  displayName: 'Publish prediction CSVs'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: 'E:\AI_Training\CPT_Data\Plots'
+    artifact: 'Plots'
+    publishLocation: 'pipeline'
+  displayName: 'Publish Plots'
